@@ -1,0 +1,104 @@
+---
+title: "ExpDes.pt: Pacote Experimental Designs (Portugues)"
+author: ""
+date: "07/05/2021"
+output: 
+  flexdashboard::flex_dashboard:
+  vertical_layout: scroll
+---
+
+# Pagina Inicial
+
+
+### ExpDes.pt: Pacote Experimental Designs (Portugues)
+
+
+```{r, eval=FALSE, echo=FALSE}
+![](apresentação.jpeg)
+```
+
+
+
+
+
+Pacote para análise de delineamentos experimentais (DIC, DBC e DQL), experimentos em esquema fatorial duplo (em DIC e DBC), experimentos em parcelas subdivididas (em DIC e DBC), experimentos em esquema fatorial duplo com um tratamento adicional (em DIC e DBC), experimentos em fatorial triplo (em DIC e DBC) e experimentos em esquema fatorial triplo com um tratamento adicional (em DIC e DBC), fazendo analise de variancia e comparacao de multiplas medias (para tratamentos qualitativos), ou ajustando modelos de regressao ate a terceira potencia (para tratamentos quantitativos); analise de residuos (Ferreira, Cavalcanti and Nogueira, 2014) [<doi:10.4236/am.2014.519280>](https://doi.org/10.4236%2Fam.2014.519280) .
+
+
+
+https://cran.r-project.org/web/packages/ExpDes.pt/index.html
+
+
+------
+**Github**
+
+Repositório
+
+[https://github.com/ExpDes.pt](https://github.com/denisnog/ExpDes.pt)
+
+
+
+# Quem Somos
+
+
+### Eric Batista Ferreira 
+
+Professor da Universidade Federal de Alfenas (UNIFAL-MG), departamento de Estatística. Atua na Pós graduação no programa de Estatística Aplicada e Biometria da UNIFAL-MG. Pesquisa nas áreas de Sensometria e Estatística Aplicada.
+
+https://pessoas.unifal-mg.edu.br/ericferreira/
+
+
+### Denismar Alves Nogueira
+
+Professor da Universidade Federal de Alfenas (UNIFAL-MG), departamento de Estatística. Atua na Pós graduação no programa de Estatística Aplicada e Biometria da UNIFAL-MG. Pesquisa nas áreas de Planejamento e análise de Experimentos, Estatística Bayesiana, Modelos Lineares, Modelos Mistos e Estatística Aplicada.
+
+http://lattes.cnpq.br/3858924778362309
+
+
+### Portya Piscitelli Cavalcanti
+
+Analista em Ciência de Dados Plena no Bradesco S.A. Doutoranda em Estatística e Experimentação Agronômica pela Universidade de São Paulo (USP/ESALQ), com período sanduíche na University of Otago (Nova Zelândia).
+
+http://lattes.cnpq.br/7083340960201058
+
+
+# ExpDes.pt
+
+
+
+:: ExpDes.pt é a versão em português do pacote ExpDes para análise de Experimentos usando Análise de variância em variados delineamentos e esquemas experimentais. Foi desenvolvido para rodar a análise completa em uma única função.  
+
+:: Possibilita escolha das comparações dos tratamentos de maneira simples
+
+:: Permite avaliar as suposições do modelo com o teste de normalidade e de homocedasticidade
+
+:: Acesso aos resíduos e análise gráfica destes.
+
+# GExpDes
+
+### GExpDes - Interface Gráfica para o Pacote ExpDes
+
+
+Os dados gerados a partir de um experimento são analisados segundo metodologias de Estatística Experimental. Para realizar essas análises, destacam-se a utilização da linguagem R, particularmente com o pacote **ExpDes**. Para quem não quer se preocupar com a linguagem R, esse trabalho apresenta uma aplicação em **Shiny** que possibilita o uso dos pacotes **ExpDes** e **labestData**. A interface reduz a complexidade da análise, sendo um auxiliar para a montagem dos comandos da linguagem R para realizá-la. Ao final, os comandos que foram necessários também são disponibilizados ao usuário.
+
+Artigo do pacote publicado na Sigmae - [link](https://publicacoes.unifal-mg.edu.br/revistas/index.php/sigmae/article/view/951)
+
+### Equipe de Desenvolvimento
+
+**Universidade Federa de Santa Catarina - UFSC**
+
+* Rogério Kormann (Agronomia) - rogerio.kormann@ufsc.br
+* Eduardo Nunes Rosa (Agronomia) - eduardo.nunes@grad.ufsc.br
+* Crysttian Arantes Paixão - crysttian.arantes.paixao@ufsc.br
+* Bruna Juliana Américo Machado (Medicina Veterinária)
+* Felipe Weber Ferrarez (Agronomia)
+* Amanda Mor (Medicina Veterinária)
+* Douglas Rufino Vaz (Engenharia Florestal)
+* Agradecimento especial João Vitor Berner Pereira (Agronomia)
+
+
+Para utilizá-la, por favor, acesse o endereço [**gexpdes.ufsc.br**](http://gexpdes.ufsc.br)
+
+#### gExpDes
+
+https://github.com/gExpDes/gexpdes
+
