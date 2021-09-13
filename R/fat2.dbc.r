@@ -226,7 +226,7 @@ anavad1<-data.frame("GL"=c(round(c(glB, glb, glf1, glE, glT))),
 "SQ"=c(round(c(SQB,SQb,SQf1,SQE,SQT),5)),
 "QM"=c(round(c(QMB,QMb,QMf1,QME,QMT),5)),
 "Fc"=c(round(c(FcB,Fcb,Fcf1),4),'',''),
-"Pr>Fc"=c(round(c(1-pf(FcB,glB,glE),1-pf(Fcb,glb,glE),1-pf(Fcf1,glf1,glE)),4),' ', ' '))
+"Pr>Fc"=c(round(c(1-pf(FcB,glB,glE),1-pf(Fcb,glb,glE),1-pf(Fcf1,glf1,glE)),4),'', ''))
 rownames(anavad1)=c("Bloco",fac.names[2],rn,"Residuo","Total")
 cat('------------------------------------------------------------------------
 Quadro da analise de variancia\n------------------------------------------------------------------------\n')
@@ -316,7 +316,7 @@ anavad2<-data.frame("GL"=c(round(c(glB, gla, glf2, glE, glT))),
 "SQ"=c(round(c(SQB,SQa,SQf2,SQE,SQT),5)),
 "QM"=c(round(c(QMB,QMa,QMf2,QME,QMT),5)),
 "Fc"=c(round(c(FcB,Fca,Fcf2),4),'',''),
-"Pr>Fc"=c(round(c(1-pf(FcB,glB,glE),1-pf(Fca,gla,glE),1-pf(Fcf2,glf2,glE)),4),' ', ' '))
+"Pr>Fc"=c(round(c(1-pf(FcB,glB,glE),1-pf(Fca,gla,glE),1-pf(Fcf2,glf2,glE)),4),'', ''))
 rownames(anavad2)=c("Bloco",fac.names[1],rn,"Residuo","Total")
 cat('------------------------------------------------------------------------
 Quadro da analise de variancia\n------------------------------------------------------------------------\n')
