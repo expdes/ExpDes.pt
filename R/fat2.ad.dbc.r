@@ -131,7 +131,7 @@ anavaT<-data.frame("GL"=c(glB,gla, glb, glab, glad, glE, glT ),
 "SQ"=c(round(c(SQB,SQa,SQb,SQab,SQad,SQE,SQT),5)),
 "QM"=c(round(c(QMB,QMa,QMb,QMab,QMad,QME),5),' '),
 "Fc"=c(round(c(FcB,Fca,Fcb,Fcab,Fcad),4),' ',' '),
-"Pr>Fc"=c(round(c(1-pf(FcB,glB,glE), pv.fs, 1-pf(Fcab,glab,glE), 1-pf(Fcad,glad,glE)),4),' ', ' '))
+"Pr>Fc"=c(round(c(1-pf(FcB,glB,glE), pv.fs, 1-pf(Fcab,glab,glE), 1-pf(Fcad,glad,glE)),4),'', ''))
 colnames(anavaT)[5]="Pr>Fc"
 rownames(anavaT)=c("Bloco",fac.names[1],fac.names[2],paste(fac.names[1],'*',fac.names[2],sep=''),"Ad vs Fatorial","Residuo","Total")
 cat('------------------------------------------------------------------------
