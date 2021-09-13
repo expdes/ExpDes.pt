@@ -20,10 +20,10 @@
 #' @param nl Logico. Escolhe se modelos nao lineares devem ser
 #' ajustados aos fatores quantitativos. O default e FALSE.
 #' @param hvar Permite escolher o teste de homogeneidade de
-#' variancias; o \emph{default} e o teste de ONeill e Mathews
-#' ('oneilmathews'), contudo tem-se como outras  opcoes: o
-#' teste de Han ('han') e o teste de Ascombe e Tukey
-#' ('ascombetukey').
+#' variancias; o \emph{default} e o teste de Han ('han'),
+#' contudo tem-se como outras  opcoes: o teste de ONeill e  
+#' Mathews ('oneilmathews') para mais de dois tratamentos
+#' e o teste de Ascombe e Tukey ('ascombetukey').
 #' @param sigT Significancia a ser adotada pelo teste de
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
@@ -65,7 +65,7 @@
 #' @export
 
 dbc<-function (trat, bloco, resp, quali = TRUE, mcomp = "tukey", nl=FALSE,
-               hvar='oneillmathews', sigT = 0.05, sigF = 0.05){
+               hvar='han', sigT = 0.05, sigF = 0.05){
 
 Trat <- factor(trat)
 Bloco <- factor(bloco)
