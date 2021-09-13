@@ -2,7 +2,7 @@
 #'
 #' \code{oneilldbc} Realiza o teste de ONeill e Mathews (2002)
 #' para o teste de homegenidade de variancias para um
-#' delineamento em blocos casualizados.
+#' delineamento em blocos casualizados com mais de dois trats.
 #' @param trat Vetor numerico ou complexo contendo os
 #' tratamentos.
 #' @param resp Vetor numerico ou complexo contendo a variavel
