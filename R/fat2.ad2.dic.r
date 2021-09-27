@@ -63,7 +63,7 @@
 #' respAd1<-c(10.6,10.6,10.4)
 #' respAd2<-c(5.7,6,7.4)
 #' data.frame(fator1,fator2,repet,resp)
-#' fat2.ad2.dbc(fator1, fator2, repet, resp, respAd1, respAd2,
+#' fat2.ad2.dic(fator1, fator2, repet, resp, respAd1, respAd2,
 #' quali=c(TRUE, FALSE), mcomp = "tukey", fac.names =
 #' c("XXXX", "YYYY"), sigT = 0.05, sigF = 0.05)
 #' @export
@@ -118,36 +118,34 @@ SQE<-anavaTr[[1]][2,2]
 SQT<-anavaTr[[1]][1,2]+anavaTr[[1]][2,2]
 
 # Soma de quadrados do contraste Ad x Fat
+SQad1=(sum(resp)^2)/(nv1*nv2*J) + ((sum(respAd1)+sum(respAd2))^2)/(2*J) - ((sum(resp)+sum(respAd1)+sum(respAd2))^2)/(nv1*nv2*J + 2*J)
 
-  SQad1=(sum(resp)^2)/(nv1*nv2*J) + ((sum(respAd1)+sum(respAd2))^2)/(2*J) - ((sum(resp)+sum(respAd1)+sum(respAd2))^2)/(nv1*nv2*J + 2*J)
+# Soma de quadrados do contraste Ad1 x Ad2
+SQad2=(sum(respAd1)^2)/J + (sum(respAd2)^2)/J - ((sum(respAd1)+sum(respAd2))^2)/(2*J)
 
-  # Soma de quadrados do contraste Ad1 x Ad2
+glB=J-1
+gla=nv1-1
+glb=nv2-1
+glab=(nv1-1)*(nv2-1)
+glad=1
+glE=(nv1*nv2)*(J-1) + 2*(J-1)
+glT=(nv1*nv2+2)*J-1
 
-  SQad2=(sum(respAd1)^2)/J + (sum(respAd2)^2)/J - ((sum(respAd1)+sum(respAd2))^2)/(2*J)
+QMa=SQa/gla
+QMb=SQb/glb
+QMab=SQab/glab
+QMad1=SQad1/glad
+QMad2=SQad2/glad
+QME=SQE/glE
+QMT=SQT/glT
 
-  glB=J-1
-  gla=nv1-1
-  glb=nv2-1
-  glab=(nv1-1)*(nv2-1)
-  glad=1
-  glE=(nv1*nv2)*(J-1)+(J-1)
-  glT=(nv1*nv2+2)*J-1
+Fca=QMa/QME
+Fcb=QMb/QME
+Fcab=QMab/QME
+Fcad1=QMad1/QME
+Fcad2=QMad2/QME
 
-  QMa=SQa/gla
-  QMb=SQb/glb
-  QMab=SQab/glab
-  QMad1=SQad1/glad
-  QMad2=SQad2/glad
-  QME=SQE/glE
-  QMT=SQT/glT
-
-  Fca=QMa/QME
-  Fcb=QMb/QME
-  Fcab=QMab/QME
-  Fcad1=QMad1/QME
-  Fcad2=QMad2/QME
-
-  pv.fs=c(1-pf(Fca,gla,glE), 1-pf(Fcb,glb,glE))
+pv.fs=c(1-pf(Fca,gla,glE), 1-pf(Fcb,glb,glE))
 
 #Montando a tabela da ANAVA
 anavaT<-data.frame("GL"=c(gla, glb, glab, glad, glad, glE, glT ),
