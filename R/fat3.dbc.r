@@ -29,6 +29,12 @@
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
+#' @param unfold Orienta os desdobramentos ap?s a an?lise de
+#' vari?ncia. Se NULL (\emph{default}), s?o feitas as an?lises
+#' recomendadas; se '0', ? feita apenas a an?lise de vari?ncia;
+#' se '1', os efeitos simples s?o estudados; se '2.1', '2.2' ou
+#' '2.3, as intera??es duplas 1, 2 ou 3 s?o estudadas; se '3',
+#' a intera??o tripla ? estudada.
 #' @details Os argumentos sigT e mcomp so serao utilizados
 #' quando os tratamentos forem qualitativos.
 #' @return Sao retornados os valores da analise de variancia
@@ -51,7 +57,7 @@
 #' construir os graficos da regressao e o
 #' \code{\link{plotres}} para analise do residuo da anava.
 #' @seealso \code{\link{fat2.dic}}, \code{\link{fat2.dbc}},
-#' \code{\link{fat3.dic}}, \code{\link{fat3.dbc}},
+#' \code{\link{fat3.dic}},
 #' \code{\link{fat2.ad.dic}}, \code{\link{fat2.ad.dbc}},
 #' \code{\link{fat3.ad.dic}} and \code{\link{fat3.ad.dbc}}.
 #' @examples
@@ -59,10 +65,20 @@
 #' attach(ex6)
 #' fat3.dbc(fatorA, fatorB, fatorC, rep, resp, quali = c(TRUE,
 #' TRUE, TRUE), mcomp = "tukey", fac.names = c("Fator A",
-#' "Fator B", "Fator C"), sigT = 0.05, sigF = 0.05)
+#' "Fator B", "Fator C"), sigT = 0.05, sigF = 0.05, unfold=NULL)
 #' @export
 
-fat3.dbc<-function(fator1, fator2, fator3, bloco, resp, quali=c(TRUE,TRUE,TRUE), mcomp='tukey', fac.names=c('F1','F2','F3'), sigT=0.05, sigF=0.05) {
+fat3.dbc<-function(fator1,
+                   fator2,
+                   fator3,
+                   bloco,
+                   resp,
+                   quali=c(TRUE,TRUE,TRUE),
+                   mcomp='tukey',
+                   fac.names=c('F1','F2','F3'),
+                   sigT=0.05,
+                   sigF=0.05,
+                   unfold=NULL) {
 
 cat('------------------------------------------------------------------------\nLegenda:\n')
 cat('FATOR 1: ',fac.names[1],'\n')
@@ -154,8 +170,23 @@ if(pvalor.shapiro<=0.05){cat('ATENCAO: a 5% de significancia, os residuos nao po
 if(pvalor.shapiro>0.05){cat('De acordo com o teste de Shapiro-Wilk a 5% de significancia, os residuos podem ser considerados normais.
 ------------------------------------------------------------------------\n')}
 
+# Creating unfold #########################################
+if(is.null(unfold)){
+  if(1-pf(Fcab,glab,glE)>sigF &&
+     1-pf(Fcac,glac,glE)>sigF &&
+     1-pf(Fcbc,glbc,glE)>sigF &&
+     1-pf(Fcabc,glabc,glE)>sigF) {unfold<-c(unfold,1)}
+  if(1-pf(Fcabc,glabc,glE)>sigF &&
+     1-pf(Fcab,glab,glE)<=sigF)  {unfold<-c(unfold,2.1)}
+  if(1-pf(Fcabc,glabc,glE)>sigF &&
+     1-pf(Fcac,glac,glE)<=sigF)  {unfold<-c(unfold,2.2)}
+  if(1-pf(Fcabc,glabc,glE)>sigF &&
+     1-pf(Fcbc,glbc,glE)<=sigF)  {unfold<-c(unfold,2.3)}
+  if(1-pf(Fcabc,glabc,glE)<=sigF){unfold<-c(unfold,3)}
+}
+
 #Para nenhuma interacao significativa, fazer...
-if(1-pf(Fcab,glab,glE)>sigF && 1-pf(Fcac,glac,glE)>sigF && 1-pf(Fcbc,glbc,glE)>sigF && 1-pf(Fcabc,glabc,glE)>sigF) {
+if(any(unfold==1)) {
 cat('\nInteracao nao significativa: analisando os efeitos simples
 ------------------------------------------------------------------------\n')
 fatores<-data.frame('fator 1'=fator1,'fator 2' = fator2,'fator 3' = fator3)
@@ -164,30 +195,14 @@ for(i in 1:3){
 #Para os fatores QUALITATIVOS, teste de Tukey
 if(quali[i]==TRUE && pv.fs[i]<=sigF) {
     cat(fac.names[i])
-      if(mcomp=='tukey'){
-    tukey(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                    }
-  if(mcomp=='duncan'){
-    duncan(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                    }
-  if(mcomp=='lsd'){
-    lsd(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                    }
-  if(mcomp=='lsdb'){
-    lsdb(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                    }
-  if(mcomp=='sk'){
-    scottknott(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                    }
-  if(mcomp=='snk'){
-    snk(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                  }
-  if(mcomp=="ccboot"){
-  ccboot(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                     }
-  if(mcomp=="ccF"){
-  ccF(resp,fatores[,i],an[9,1],an[9,2],sigT)
-                     }
+if(mcomp=='tukey'){tukey(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp,fatores[,i],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp,fatores[,i],an[9,1],an[9,2],sigT)}
                    }
 
 if(quali[i]==TRUE && pv.fs[i]>sigF) {
@@ -218,13 +233,12 @@ cat('------------------------------------------------------------------------')
 
 cat('\n')
 }
-
 }
 
 #Se a(s) interacao(?es) dupla(s) for(em) significativa(s), desdobramento:
 
 #Interacao Fator1*Fator2
-if(1-pf(Fcabc,glabc,glE)>sigF && 1-pf(Fcab,glab,glE)<=sigF){
+if(any(unfold==2.1)){
 cat("\n\n\nInteracao",paste(fac.names[1],'*',fac.names[2],sep='')," significativa: desdobrando a interacao
 ------------------------------------------------------------------------\n")
 
@@ -246,13 +260,9 @@ des1.tab<-summary(des1,split=list('Fator2:Fator1'=l1))[[1]]
 
 #Montando a tabela de ANAVA do des1
 glf1=c(as.numeric(des1.tab[3:(nv2+2),1]))
-
 SQf1=c(as.numeric(des1.tab[3:(nv2+2),2]))
-
 QMf1=SQf1/glf1
-
 Fcf1=QMf1/QME
-
 rn<-numeric(0)
 for(i in 1:nv2){ rn<-c(rn, paste(paste(fac.names[1],':',fac.names[2],sep=''),lf2[i]))}
 
@@ -273,48 +283,32 @@ for(i in 1:nv2) {
 ii<-ii+1
   if(1-pf(Fcf1,glf1,glE)[ii]<=sigF){
     if(quali[1]==TRUE){
-                      cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
+cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
-                        if(mcomp=='tukey'){
-                          tukey(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
+if(mcomp=='tukey'){tukey(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
                       }
-    else{  #regressao
-    cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
+else{  #regressao
+cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
-    reg.poly(resp[Fator2==lf2[i]], fator1[Fator2==lf2[i]], an[9,1], an[9,2], des1.tab[i+2,1], des1.tab[i+2,2])
+reg.poly(resp[Fator2==lf2[i]], fator1[Fator2==lf2[i]], an[9,1], an[9,2], des1.tab[i+2,1], des1.tab[i+2,2])
         }
                               }
-    else{cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
+else{cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
         }
-                 }
+}
 cat('\n\n')
 
 #Desdobramento de FATOR 2 dentro do niveis de FATOR 1
@@ -335,13 +329,9 @@ des2.tab<-summary(des2,split=list('Fator1:Fator2'=l2))[[1]]
 
 #Montando a tabela de ANAVA do des2
 glf2=c(as.numeric(des2.tab[3:(nv1+2),1]))
-
 SQf2=c(as.numeric(des2.tab[3:(nv1+2),2]))
-
 QMf2=SQf2/glf2
-
 Fcf2=QMf2/QME
-
 rn<-numeric(0)
 for(k in 1:nv1){ rn<-c(rn, paste(paste(fac.names[2],':',fac.names[1],sep=''),lf1[k]))}
 
@@ -362,49 +352,32 @@ for(i in 1:nv1) {
 ii<-ii+1
   if(1-pf(Fcf2,glf2,glE)[ii]<=sigF){
     if(quali[2]==TRUE){
-                      cat('\n\n',fac.names[2],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
+cat('\n\n',fac.names[2],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
 ------------------------------------------------------------------------')
-                      if(mcomp=='tukey'){
-                          tukey(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                           }
+if(mcomp=='tukey'){tukey(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
                       }
-    else{  #regressao
-        cat('\n\n',fac.names[2],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
+else{  #regressao
+cat('\n\n',fac.names[2],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
 ------------------------------------------------------------------------')
-        reg.poly(resp[Fator1==lf1[i]], fator2[Fator1==lf1[i]], an[9,1], an[9,2], des2.tab[i+2,1], des2.tab[i+2,2])
+reg.poly(resp[Fator1==lf1[i]], fator2[Fator1==lf1[i]], an[9,1], an[9,2], des2.tab[i+2,1], des2.tab[i+2,2])
         }
                              }
-    else{cat('\n\n',fac.names[2],' dentro do nivel ',lf1[i],' de ',fac.names[1],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-
-                }
+else{cat('\n\n',fac.names[2],' dentro do nivel ',lf1[i],' de ',fac.names[1],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[Fator1==lf1[i]],fatores[,2][Fator1==lf1[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
 
 #Checar o Fator3
 if(pvalor[5]>sigF && pvalor[6]>sigF) {
@@ -414,46 +387,30 @@ if(pvalor[5]>sigF && pvalor[6]>sigF) {
   i<-3
 {
   #Para os fatores QUALITATIVOS, teste de Tukey
-  if(quali[i]==TRUE && pvalor[i]<=sigF) {
-    cat(fac.names[i])
-    if(mcomp=='tukey'){
-      tukey(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='duncan'){
-      duncan(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='lsd'){
-      lsd(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='lsdb'){
-      lsdb(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='sk'){
-      scottknott(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='snk'){
-      snk(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=="ccboot"){
-      ccboot(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=="ccF"){
-      ccF(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-  }
+if(quali[i]==TRUE && pvalor[i]<=sigF) {
+   cat(fac.names[i])
+if(mcomp=='tukey'){tukey(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='duncan'){duncan(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='lsd'){lsd(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='sk'){scottknott(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='snk'){snk(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=="ccF"){ccF(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+}
 
-  if(quali[i]==TRUE && pvalor[i]>sigF) {
-    cat(fac.names[i])
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-    mean.table<-tapply.stat(resp,fatores[,i],mean)
-    colnames(mean.table)<-c('Niveis','Medias')
-    print(mean.table)
-    cat('------------------------------------------------------------------------')
-  }
+if(quali[i]==TRUE && pvalor[i]>sigF) {
+cat(fac.names[i])
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp,fatores[,i],mean)
+colnames(mean.table)<-c('Niveis','Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------')
+}
 
-  #Para os fatores QUANTITATIVOS, regressao
-  if(quali[i]==FALSE && pvalor[i]<=sigF){
+#Para os fatores QUANTITATIVOS, regressao
+if(quali[i]==FALSE && pvalor[i]<=sigF){
     cat(fac.names[i])
     reg.poly(resp, fatores[,i], an[8,1],an[8,2], an[i,1], an[i,2])
   }
@@ -470,13 +427,11 @@ if(pvalor[5]>sigF && pvalor[6]>sigF) {
 
   cat('\n')
 }
-
 }
-
 }
 
 #Interacao Fator1*Fator3
-if(1-pf(Fcabc,glabc,glE)>sigF && 1-pf(Fcac,glac,glE)<=sigF){
+if(any(unfold==2.2)){
 cat("\n\n\nInteracao",paste(fac.names[1],'*',fac.names[3],sep='')," significativa: desdobrando a interacao
 ------------------------------------------------------------------------\n")
 
@@ -498,13 +453,9 @@ des3.tab<-summary(des3,split=list('Fator3:Fator1'=l1))[[1]]
 
 #Montando a tabela de ANAVA do des3
 glf3=c(as.numeric(des3.tab[3:(nv3+2),1]))
-
 SQf3=c(as.numeric(des3.tab[3:(nv3+2),2]))
-
 QMf3=SQf3/glf3
-
 Fcf3=QMf3/QME
-
 rn<-numeric(0)
 for(j in 1:nv3){ rn<-c(rn, paste(paste(fac.names[1],':',fac.names[3],sep=''),lf3[j]))}
 
@@ -525,48 +476,32 @@ for(i in 1:nv3) {
 ii<-ii+1
   if(1-pf(Fcf3,glf3,glE)[ii]<=sigF){
     if(quali[1]==TRUE){
-                      cat('\n\n',fac.names[1],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
+cat('\n\n',fac.names[1],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-                        if(mcomp=='tukey'){
-                          tukey(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-    cat('\n\n',fac.names[1],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
+if(mcomp=='tukey'){tukey(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+}
+else{  #regressao
+cat('\n\n',fac.names[1],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-    reg.poly(resp[Fator3==lf3[i]], fator1[Fator3==lf3[i]], an[9,1], an[9,2], des3.tab[i+2,1], des3.tab[i+2,2])
-        }
-                              }
-    else{cat('\n\n',fac.names[1],' dentro do nivel ',lf3[i],' de ',fac.names[3],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-                 }
+reg.poly(resp[Fator3==lf3[i]], fator1[Fator3==lf3[i]], an[9,1], an[9,2], des3.tab[i+2,1], des3.tab[i+2,2])
+}
+}
+else{cat('\n\n',fac.names[1],' dentro do nivel ',lf3[i],' de ',fac.names[3],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[Fator3==lf3[i]],fatores[,1][Fator3==lf3[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
 cat('\n\n')
 
 #Desdobramento de FATOR 3 dentro dos niveis de FATOR 1
@@ -587,13 +522,9 @@ des4.tab<-summary(des4,split=list('Fator1:Fator3'=l3))[[1]]
 
 #Montando a tabela de ANAVA do des4
 glf4=c(as.numeric(des4.tab[3:(nv1+2),1]))
-
 SQf4=c(as.numeric(des4.tab[3:(nv1+2),2]))
-
 QMf4=SQf4/glf4
-
 Fcf4=QMf4/QME
-
 rn<-numeric(0)
 for(k in 1:nv1){ rn<-c(rn, paste(paste(fac.names[3],':',fac.names[1],sep=''),lf1[k]))}
 
@@ -614,49 +545,32 @@ for(i in 1:nv1) {
 ii<-ii+1
   if(1-pf(Fcf4,glf4,glE)[ii]<=sigF){
     if(quali[3]==TRUE){
-                      cat('\n\n',fac.names[3],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
+cat('\n\n',fac.names[3],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
 ------------------------------------------------------------------------')
-                      if(mcomp=='tukey'){
-                          tukey(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-        cat('\n\n',fac.names[3],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
+if(mcomp=='tukey'){tukey(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],an[9,1],an[9,2],sigT)}
+}
+else{  #regressao
+cat('\n\n',fac.names[3],' dentro do nivel ',lf1[i],' de ',fac.names[1],'
 ------------------------------------------------------------------------')
-        reg.poly(resp[Fator1==lf1[i]], fator3[Fator1==lf1[i]], an[9,1], an[9,2], des4.tab[i+2,1], des4.tab[i+2,2])
-        }
-                             }
-    else{cat('\n\n',fac.names[3],' dentro do nivel ',lf1[i],' de ',fac.names[1],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-
-                }
+reg.poly(resp[Fator1==lf1[i]], fator3[Fator1==lf1[i]], an[9,1], an[9,2], des4.tab[i+2,1], des4.tab[i+2,2])
+}
+}
+else{cat('\n\n',fac.names[3],' dentro do nivel ',lf1[i],' de ',fac.names[1],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[Fator1==lf1[i]],fatores[,3][Fator1==lf1[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
 
 #Checar o Fator2
 if(pvalor[4]>sigF && pvalor[6]>sigF) {
@@ -665,69 +579,52 @@ if(pvalor[4]>sigF && pvalor[6]>sigF) {
 
   i<-2
 {
-  #Para os fatores QUALITATIVOS, teste de Tukey
-  if(quali[i]==TRUE && pvalor[i]<=sigF) {
-    cat(fac.names[i])
-    if(mcomp=='tukey'){
-      tukey(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='duncan'){
-      duncan(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='lsd'){
-      lsd(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='lsdb'){
-      lsdb(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='sk'){
-      scottknott(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='snk'){
-      snk(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=="ccboot"){
-      ccboot(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=="ccF"){
-      ccF(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-  }
-
-  if(quali[i]==TRUE && pvalor[i]>sigF) {
-    cat(fac.names[i])
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-    mean.table<-tapply.stat(resp,fatores[,i],mean)
-    colnames(mean.table)<-c('Niveis','Medias')
-    print(mean.table)
-    cat('------------------------------------------------------------------------')
-  }
-
-  #Para os fatores QUANTITATIVOS, regressao
-  if(quali[i]==FALSE && pvalor[i]<=sigF){
-    cat(fac.names[i])
-    reg.poly(resp, fatores[,i], an[8,1],an[8,2], an[i,1], an[i,2])
-  }
-
-  if(quali[i]==FALSE && pvalor[i]>sigF) {
-    cat(fac.names[i])
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-    mean.table<-tapply.stat(resp,fatores[,i],mean)
-    colnames(mean.table)<-c('Niveis','Medias')
-    print(mean.table)
-    cat('------------------------------------------------------------------------')
-  }
-
-  cat('\n')
+#Para os fatores QUALITATIVOS, teste de Tukey
+if(quali[i]==TRUE && pvalor[i]<=sigF) {
+   cat(fac.names[i])
+if(mcomp=='tukey'){tukey(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='duncan'){duncan(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='lsd'){lsd(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='sk'){scottknott(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='snk'){snk(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=="ccF"){ccF(resp,fatores[,i],an[8,1],an[8,2],sigT)}
 }
 
+if(quali[i]==TRUE && pvalor[i]>sigF) {
+cat(fac.names[i])
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp,fatores[,i],mean)
+colnames(mean.table)<-c('Niveis','Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------')
+}
+
+#Para os fatores QUANTITATIVOS, regressao
+if(quali[i]==FALSE && pvalor[i]<=sigF){
+  cat(fac.names[i])
+  reg.poly(resp, fatores[,i], an[8,1],an[8,2], an[i,1], an[i,2])
+}
+
+if(quali[i]==FALSE && pvalor[i]>sigF) {
+cat(fac.names[i])
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp,fatores[,i],mean)
+colnames(mean.table)<-c('Niveis','Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------')
+}
+
+cat('\n')
+}
 }
 }
 
 #Interacao Fator2*Fator3
-if(1-pf(Fcabc,glabc,glE)>sigF && 1-pf(Fcbc,glbc,glE)<=sigF){
+if(any(unfold==2.3)){
 cat("\n\n\nInteracao",paste(fac.names[2],'*',fac.names[3],sep='')," significativa: desdobrando a interacao
 ------------------------------------------------------------------------\n")
 
@@ -749,13 +646,9 @@ des5.tab<-summary(des5,split=list('Fator3:Fator2'=l2))[[1]]
 
 #Montando a tabela de ANAVA do des5
 glf5=c(as.numeric(des5.tab[3:(nv3+2),1]))
-
 SQf5=c(as.numeric(des5.tab[3:(nv3+2),2]))
-
 QMf5=SQf5/glf5
-
 Fcf5=QMf5/QME
-
 rn<-numeric(0)
 for(j in 1:nv3){ rn<-c(rn, paste(paste(fac.names[2],':',fac.names[3],sep=''),lf3[j]))}
 
@@ -776,48 +669,32 @@ for(i in 1:nv3) {
 ii<-ii+1
   if(1-pf(Fcf5,glf5,glE)[ii]<=sigF){
     if(quali[2]==TRUE){
-                      cat('\n\n',fac.names[2],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
+cat('\n\n',fac.names[2],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-                        if(mcomp=='tukey'){
-                          tukey(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-    cat('\n\n',fac.names[2],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
+if(mcomp=='tukey'){tukey(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],an[9,1],an[9,2],sigT)}
+}
+else{  #regressao
+cat('\n\n',fac.names[2],' dentro do nivel ',lf3[i],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-    reg.poly(resp[Fator3==lf3[i]], fator2[Fator3==lf3[i]], an[9,1], an[9,2], des5.tab[i+2,1], des5.tab[i+2,2])
-        }
+reg.poly(resp[Fator3==lf3[i]], fator2[Fator3==lf3[i]], an[9,1], an[9,2], des5.tab[i+2,1], des5.tab[i+2,2])
+}
                               }
-    else{cat('\n\n',fac.names[2],' dentro do nivel ',lf3[i],' de ',fac.names[3],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-                 }
+else{cat('\n\n',fac.names[2],' dentro do nivel ',lf3[i],' de ',fac.names[3],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[Fator3==lf3[i]],fatores[,2][Fator3==lf3[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
 cat('\n\n')
 
 #Desdobramento de FATOR 3 dentro do niveis de FATOR 2
@@ -838,13 +715,9 @@ des6.tab<-summary(des6,split=list('Fator2:Fator3'=l3))[[1]]
 
 #Montando a tabela de ANAVA do des6
 glf6=c(as.numeric(des6.tab[3:(nv2+2),1]))
-
 SQf6=c(as.numeric(des6.tab[3:(nv2+2),2]))
-
 QMf6=SQf6/glf6
-
 Fcf6=QMf6/QME
-
 rn<-numeric(0)
 for(i in 1:nv2){ rn<-c(rn, paste(paste(fac.names[3],':',fac.names[2],sep=''),lf2[i]))}
 
@@ -865,49 +738,32 @@ for(i in 1:nv2) {
 ii<-ii+1
   if(1-pf(Fcf6,glf6,glE)[ii]<=sigF){
     if(quali[3]==TRUE){
-                      cat('\n\n',fac.names[3],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
+cat('\n\n',fac.names[3],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
-                      if(mcomp=='tukey'){
-                          tukey(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-        cat('\n\n',fac.names[3],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
+if(mcomp=='tukey'){tukey(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
+}
+else{  #regressao
+cat('\n\n',fac.names[3],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
-        reg.poly(resp[Fator2==lf2[i]], fator3[Fator2==lf2[i]], an[9,1], an[9,2], des6.tab[i+2,1], des6.tab[i+2,2])
-        }
-                             }
-    else{cat('\n\n',fac.names[3],' dentro do nivel ',lf2[i],' de ',fac.names[2],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-
-                }
+reg.poly(resp[Fator2==lf2[i]], fator3[Fator2==lf2[i]], an[9,1], an[9,2], des6.tab[i+2,1], des6.tab[i+2,2])
+}
+}
+else{cat('\n\n',fac.names[3],' dentro do nivel ',lf2[i],' de ',fac.names[2],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[Fator2==lf2[i]],fatores[,3][Fator2==lf2[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
 
 #Checar o Fator1
 if(pvalor[4]>sigF && pvalor[5]>sigF) {
@@ -917,78 +773,58 @@ if(pvalor[4]>sigF && pvalor[5]>sigF) {
   i<-1
 {
   #Para os fatores QUALITATIVOS, teste de Tukey
-  if(quali[i]==TRUE && pvalor[i]<=sigF) {
+if(quali[i]==TRUE && pvalor[i]<=sigF) {
     cat(fac.names[i])
-    if(mcomp=='tukey'){
-      tukey(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='duncan'){
-      duncan(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='lsd'){
-      lsd(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='lsdb'){
-      lsdb(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='sk'){
-      scottknott(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=='snk'){
-      snk(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=="ccboot"){
-      ccboot(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-    if(mcomp=="ccF"){
-      ccF(resp,fatores[,i],an[8,1],an[8,2],sigT)
-    }
-  }
+if(mcomp=='tukey'){tukey(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='duncan'){duncan(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='lsd'){lsd(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='sk'){scottknott(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=='snk'){snk(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+if(mcomp=="ccF"){ccF(resp,fatores[,i],an[8,1],an[8,2],sigT)}
+}
 
-  if(quali[i]==TRUE && pvalor[i]>sigF) {
-    cat(fac.names[i])
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-    mean.table<-tapply.stat(resp,fatores[,i],mean)
-    colnames(mean.table)<-c('Niveis','Medias')
-    print(mean.table)
-    cat('------------------------------------------------------------------------')
-  }
+if(quali[i]==TRUE && pvalor[i]>sigF) {
+cat(fac.names[i])
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp,fatores[,i],mean)
+colnames(mean.table)<-c('Niveis','Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------')
+}
 
   #Para os fatores QUANTITATIVOS, regressao
-  if(quali[i]==FALSE && pvalor[i]<=sigF){
-    cat(fac.names[i])
-    reg.poly(resp, fatores[,i], an[8,1],an[8,2], an[i,1], an[i,2])
-  }
-
-  if(quali[i]==FALSE && pvalor[i]>sigF) {
-    cat(fac.names[i])
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-    mean.table<-tapply.stat(resp,fatores[,i],mean)
-    colnames(mean.table)<-c('Niveis','Medias')
-    print(mean.table)
-    cat('------------------------------------------------------------------------')
-  }
-
-  cat('\n')
+if(quali[i]==FALSE && pvalor[i]<=sigF){
+  cat(fac.names[i])
+  reg.poly(resp, fatores[,i], an[8,1],an[8,2], an[i,1], an[i,2])
 }
 
-}
+if(quali[i]==FALSE && pvalor[i]>sigF) {
+cat(fac.names[i])
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp,fatores[,i],mean)
+colnames(mean.table)<-c('Niveis','Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------')
 }
 
-
+cat('\n')
+}
+}
+}
 
 
 #Para interacao tripla significativa, desdobramento
-if(1-pf(Fcabc,glabc,glE)<=sigF){
+if(any(unfold==3)){
 cat("\n\n\nInteracao",paste(fac.names[1],'*',fac.names[2],'*',fac.names[3],sep='')," significativa: desdobrando a interacao
 ------------------------------------------------------------------------\n")
 
 #Desdobramento de FATOR 1 dentro do niveis de FATOR 2 e do FATOR3
 cat("\nDesdobrando ", fac.names[1], ' dentro de cada nivel de ', fac.names[2], 'e',fac.names[3],'
 ------------------------------------------------------------------------\n')
-
 
 SQc<-numeric(0)
 SQf<-numeric(nv2*nv3)
@@ -1022,59 +858,40 @@ print(anavad7)
 cat('------------------------------------------------------------------------\n\n')
 
 
-
 ii<-0
     for(i in 1:nv2) {
       for(j in 1:nv3) {
         ii<-ii+1
         if(1-pf(QM/QME,glf,glE)[ii]<=sigF){
         if(quali[1]==TRUE){
-                      cat('\n\n',fac.names[1],' dentro da combinacao dos niveis ',lf2[i],' de ',fac.names[2],' e ',lf3[j],' de ',fac.names[3],'
+cat('\n\n',fac.names[1],' dentro da combinacao dos niveis ',lf2[i],' de ',fac.names[2],' e ',lf3[j],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-                        if(mcomp=='tukey'){
-                          tukey(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-    cat('\n\n',fac.names[1],' dentro da combinacao dos niveis ',lf2[i],' de ',fac.names[2],' e ',lf3[j],' de ',fac.names[3],'
+if(mcomp=='tukey'){tukey(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]],fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],an[9,1],an[9,2],sigT)}
+}
+else{  #regressao
+cat('\n\n',fac.names[1],' dentro da combinacao dos niveis ',lf2[i],' de ',fac.names[2],' e ',lf3[j],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-    reg.poly(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]], fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]], an[9,1],an[9,2], nv1-1, SQ[ii])
-        }
-                                        }
+reg.poly(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]], fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]], an[9,1],an[9,2], nv1-1, SQ[ii])
+}
+}
 
-    else{cat('\n\n',fac.names[1],' dentro da combinacao dos niveis ',lf2[i],' de ',fac.names[2],' e ',lf3[j],' de ',fac.names[3],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]], fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-                      }
-                    }
-
-
+else{cat('\n\n',fac.names[1],' dentro da combinacao dos niveis ',lf2[i],' de ',fac.names[2],' e ',lf3[j],' de ',fac.names[3],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[fatores[,2]==lf2[i] & fatores[,3]==lf3[j]], fatores[,1][Fator2==lf2[i] & Fator3==lf3[j]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
+}
 
 cat('\n\n')
 
@@ -1100,7 +917,6 @@ glf=rep(nv2-1,(nv1*nv3))
 QM=SQ/glf
 #Montando a tabela de ANAVA do des8
 
-
 anavad8<-data.frame("GL"=c(glf,glE),
 "SQ"=c(SQ,SQE),
 "QM"=c(QM,QME),
@@ -1119,49 +935,32 @@ for(k in 1:nv1) {
   ii<-ii+1
   if(1-pf(QM/QME,glf,glE)[ii]<=sigF){
     if(quali[2]==TRUE){
-                      cat('\n\n',fac.names[2],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf3[j],' de ',fac.names[3],'
+cat('\n\n',fac.names[2],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf3[j],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-                      if(mcomp=='tukey'){
-                          tukey(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-        cat('\n\n',fac.names[2],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf3[j],' de ',fac.names[3],'
+if(mcomp=='tukey'){tukey(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],an[9,1],an[9,2],sigT)}}
+else{  #regressao
+cat('\n\n',fac.names[2],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf3[j],' de ',fac.names[3],'
 ------------------------------------------------------------------------')
-        reg.poly(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]], an[9,1], an[9,2], nv2-1, SQ[ii])
-        }
-                             }
-    else{cat('\n\n',fac.names[2],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf3[j],' de ',fac.names[3],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-                   }
-                }
+reg.poly(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]], an[9,1], an[9,2], nv2-1, SQ[ii])
+}
+}
+else{cat('\n\n',fac.names[2],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf3[j],' de ',fac.names[3],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[fatores[,1]==lf1[k] & fatores[,3]==lf3[j]],fatores[,2][Fator1==lf1[k] & fatores[,3]==lf3[j]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
+}
 
 #Desdobramento de FATOR 3 dentro do niveis de FATOR 1 e FATOR 2
 cat("\nDesdobrando ", fac.names[3], ' dentro de cada nivel de ', fac.names[1], 'e',fac.names[2],'
@@ -1176,15 +975,13 @@ for(k in 1:nv1){
      for(j in 1:nv3) {SQf[(k-1)*nv2+i]=c(SQf[(k-1)*nv2+i]+ sum(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i] & fatores[,3]==lf3[j]])^2) }
   rn<-c(rn, paste(paste(fac.names[3],':',sep=''),lf1[k],lf2[i]))
   SQc=c(SQc,(sum(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]])^2)/(nv3*J))
-
-                }
-                }
+}
+}
 SQf=SQf/J
 SQ=SQf-SQc
 glf=rep(nv3-1,(nv1*nv2))
 QM=SQ/glf
 #Montando a tabela de ANAVA do des9
-
 
 anavad9<-data.frame("GL"=c(glf,glE),
 "SQ"=c(SQ,SQE),
@@ -1204,50 +1001,33 @@ for(k in 1:nv1) {
   ii<-ii+1
   if(1-pf(QM/QME,glf,glE)[ii]<=sigF){
     if(quali[3]==TRUE){
-                      cat('\n\n',fac.names[3],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf2[i],' de ',fac.names[2],'
+cat('\n\n',fac.names[3],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
-                      if(mcomp=='tukey'){
-                          tukey(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                          }
-                        if(mcomp=='duncan'){
-                          duncan(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=='lsd'){
-                          lsd(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=='lsdb'){
-                          lsdb(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                         }
-                        if(mcomp=='sk'){
-                          scottknott(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                       }
-                        if(mcomp=='snk'){
-                          snk(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                        }
-                        if(mcomp=="ccboot"){
-                        ccboot(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                        if(mcomp=="ccF"){
-                        ccF(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)
-                                           }
-                      }
-    else{  #regressao
-        cat('\n\n',fac.names[3],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf2[i],' de ',fac.names[2],'
+if(mcomp=='tukey'){tukey(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='duncan'){duncan(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsd'){lsd(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='lsdb'){lsdb(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='sk'){scottknott(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=='snk'){snk(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccboot"){ccboot(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+if(mcomp=="ccF"){ccF(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],an[9,1],an[9,2],sigT)}
+}
+else{  #regressao
+cat('\n\n',fac.names[3],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
-        reg.poly(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]], an[9,1], an[9,2], nv3-1, SQ[ii])
-        }
-                             }
-    else{cat('\n\n',fac.names[3],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf2[i],' de ',fac.names[2],'\n')
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
-        mean.table<-tapply.stat(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],mean)
-        colnames(mean.table)<-c('  Niveis','    Medias')
-        print(mean.table)
-        cat('------------------------------------------------------------------------\n')
-        }
-                   }
-                }
-
+reg.poly(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]], an[9,1], an[9,2], nv3-1, SQ[ii])
+}
+}
+else{cat('\n\n',fac.names[3],' dentro da combinacao dos niveis ',lf1[k],' de ',fac.names[1],' e ',lf2[i],' de ',fac.names[2],'\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
+mean.table<-tapply.stat(resp[fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],fatores[,3][fatores[,1]==lf1[k] & fatores[,2]==lf2[i]],mean)
+colnames(mean.table)<-c('  Niveis','    Medias')
+print(mean.table)
+cat('------------------------------------------------------------------------\n')
+}
+}
+}
 }
 #Saida
 out<-list()
