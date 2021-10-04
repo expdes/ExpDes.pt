@@ -27,6 +27,10 @@
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
+#' @param unfold Orienta os desdobramentos apos a analise de
+#' variancia. Se NULL (\emph{default}), sao feitas as analises
+#' recomendadas; se '0', e feita apenas a analise de variancia;
+#' se '1', os efeitos simples sao estudados.
 #' @details Os argumentos sigT e mcomp so serao utilizados
 #' quando os tratamentos forem qualitativos.
 #' @return Sao retornados os valores da analise de variancia do
@@ -60,11 +64,18 @@
 #' @examples
 #' data(ex1)
 #' attach(ex1)
-#' dic(trat, ig, quali = FALSE, sigF = 0.05)
+#' dic(trat, ig, quali = FALSE, sigF = 0.05, unfold=NULL)
 #' @export
 
-dic<-function(trat, resp, quali=TRUE, mcomp='tukey', nl=FALSE,
-              hvar='bartlett', sigT=0.05, sigF=0.05) {
+dic<-function(trat,
+              resp,
+              quali=TRUE,
+              mcomp='tukey',
+              nl=FALSE,
+              hvar='bartlett',
+              sigT=0.05,
+              sigF=0.05,
+              unfold=NULL) {
 
 Trat<-factor(trat)
 anava<-aov(resp~Trat)
@@ -136,8 +147,13 @@ cat('------------------------------------------------------------------------\n'
 else{cat('De acordo com o teste de',hvar,'a 5% de significancia, as variancias podem ser consideradas homogeneas.\n')
 cat('------------------------------------------------------------------------\n')}
 
+# Creating unfold #########################################
+if(is.null(unfold)){
+  if(tab[[1]][1,5]<=sigF) {unfold<-c(unfold,1)}
+}
 
-if(tab[[1]][1,5]<sigF) {
+#Para fator significativo, fazer...
+if(any(unfold==1)) {
 
 if(quali==TRUE) {
 

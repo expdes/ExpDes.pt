@@ -22,6 +22,10 @@
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
+#' @param unfold Orienta os desdobramentos apos a analise de
+#' variancia. Se NULL (\emph{default}), sao feitas as analises
+#' recomendadas; se '0', e feita apenas a analise de variancia;
+#' se '1', os efeitos simples sao estudados.
 #' @details Os argumentos sigT e mcomp so serao utilizados
 #' quando os tratamentos forem qualitativos.
 #' @return Sao retornados os valores da analise de variancia do
@@ -53,11 +57,18 @@
 #' data(ex3)
 #' attach(ex3)
 #' dql(trat, linha, coluna, resp, quali=TRUE, mcomp = "snk",
-#' sigT = 0.05, sigF = 0.05)
+#' sigT = 0.05, sigF = 0.05, unfold=NULL)
 #' @export
 
-dql<-function(trat, linha, coluna, resp, quali=TRUE,
-              mcomp="tukey", sigT=0.05, sigF=0.05) {
+dql<-function(trat,
+              linha,
+              coluna,
+              resp,
+              quali=TRUE,
+              mcomp="tukey",
+              sigT=0.05,
+              sigF=0.05,
+              unfold=NULL) {
 
 Trat<-factor(trat)
 Linha<-factor(linha)
@@ -76,7 +87,6 @@ cat('------------------------------------------------------------------------\nQ
 print(tab[[1]])
 cat('------------------------------------------------------------------------\nCV =',cv,'%\n')
 
-
 #Teste de normalidade
 pvalor.shapiro<-shapiro.test(anava$residuals)$p.value
 cat('\n------------------------------------------------------------------------\nTeste de normalidade dos residuos (Shapiro-Wilk)\n')
@@ -86,7 +96,13 @@ if(pvalor.shapiro<0.05){cat('ATENCAO: a 5% de significancia, os residuos nao pod
 else{cat('De acordo com o teste de Shapiro-Wilk a 5% de significancia, os residuos podem ser considerados normais.
 ------------------------------------------------------------------------\n')}
 
-if(tab[[1]][1,5]<sigF){
+# Creating unfold #########################################
+if(is.null(unfold)){
+  if(tab[[1]][1,5]<=sigF) {unfold<-c(unfold,1)}
+}
+
+#Para fator significativo, fazer...
+if(any(unfold==1)){
 
 if(quali==TRUE) {
 

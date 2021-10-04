@@ -24,6 +24,11 @@
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
+#' @param unfold Orienta os desdobramentos apos a analise de
+#' variancia. Se NULL (\emph{default}), sao feitas as analises
+#' recomendadas; se '0', e feita apenas a analise de variancia;
+#' se '1', os efeitos simples sao estudados; se '2', a interacao
+#' dupla e estudada.
 #' @author Eric B Ferreira,
 #'  \email{eric.ferreira@@unifal-mg.edu.br}
 #' @author Laís Brambilla Storti Ferreira
@@ -38,11 +43,19 @@
 #' attach(ex5)
 #' faixas(trat, genero, bloco, sabor, quali = c(TRUE,TRUE),
 #' mcomp = "tukey", fac.names = c("Amostras","Genero"),
-#' sigT = 0.05, sigF = 0.05)
+#' sigT = 0.05, sigF = 0.05, unfold=NULL)
 #' @export
 
-faixas<-function(fator1, fator2, bloco, resp, quali=c(TRUE,TRUE), mcomp='tukey', fac.names=c('F1','F2'), sigT=0.05, sigF=0.05) {
-
+faixas<-function(fator1,
+                 fator2,
+                 bloco,
+                 resp,
+                 quali=c(TRUE,TRUE),
+                 mcomp='tukey',
+                 fac.names=c('F1','F2'),
+                 sigT=0.05,
+                 sigF=0.05,
+                 unfold=NULL) {
 
 cat('------------------------------------------------------------------------\nLegenda:\n')
 cat('FATOR 1 (parcela): ',fac.names[1],'\n')
@@ -78,7 +91,7 @@ Quadro da analise de variancia\n------------------------------------------------
 print(tab)
 cat('------------------------------------------------------------------------
 CV 1 =',cv1,'%\nCV 2 =', cv2,'%\nCV 3 =', cv3,'%\n')
- 
+
 fatores<-data.frame('fator 1' = fator1,'fator 2' = fator2)
 
 ###############################################################################################################
@@ -92,9 +105,14 @@ fatores<-data.frame('fator 1' = fator1,'fator 2' = fator2)
 #else{cat('De acordo com o teste de Shapiro-Wilk a 5% de significancia, os residuos podem ser considerados normais.
 #------------------------------------------------------------------------\n')}
 
+# Creating unfold #########################################
+if(is.null(unfold)){
+  if(tab[6,5]>sigF)  {unfold<-c(unfold,1)}
+  if(tab[6,5]<=sigF) {unfold<-c(unfold,2)}
+}
 
 #Para interacao nao significativa, fazer...
-if(tab[6,5]>sigF) {
+if(any(unfold==1)) {
 cat('\nInteracao nao significativa: analisando os efeitos simples
 ------------------------------------------------------------------------\n')
 
@@ -155,14 +173,12 @@ if(quali[i]==FALSE && as.numeric(tab[cont[i],5])>sigF) {
     colnames(mean.table)<-c('Niveis','Medias')
     print(mean.table)
     cat('------------------------------------------------------------------------')
-                            }
-
+}
 cat('\n')
 }
-
 }
 #Se a interacao for significativa, desdobrar a interacao
-if(as.numeric(tab[6,5])<=sigF) {
+if(any(unfold==2)) {
 cat("\n\n\nInteracao significativa: desdobrando a interacao
 ------------------------------------------------------------------------\n")
 

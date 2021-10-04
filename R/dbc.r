@@ -20,14 +20,18 @@
 #' @param nl Logico. Escolhe se modelos nao lineares devem ser
 #' ajustados aos fatores quantitativos. O default e FALSE.
 #' @param hvar Permite escolher o teste de homogeneidade de
-#' variancias; o \emph{default} e o teste de Han ('han'),
-#' contudo tem-se como outras  opcoes: o teste de ONeill e  
-#' Mathews ('oneilmathews') para mais de dois tratamentos
-#' e o teste de Ascombe e Tukey ('ascombetukey').
+#' variancias; o \emph{default} e o teste de ONeill e Mathews
+#' ('oneilmathews'), contudo tem-se como outras  opcoes: o
+#' teste de Han ('han') e o teste de Ascombe e Tukey
+#' ('ascombetukey').
 #' @param sigT Significancia a ser adotada pelo teste de
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
+#' @param unfold Orienta os desdobramentos apos a analise de
+#' variancia. Se NULL (\emph{default}), sao feitas as analises
+#' recomendadas; se '0', e feita apenas a analise de variancia;
+#' se '1', os efeitos simples sao estudados.
 #' @details Os argumentos sigT e mcomp so serao utilizados
 #' quando os tratamentos forem qualitativos.
 #' @return Sao retornados os valores da analise de variancia do
@@ -61,11 +65,19 @@
 #' data(ex2)
 #' attach(ex2)
 #' dbc(trat, provador, aparencia, quali = TRUE, mcomp = "lsd",
-#' hvar = "oneillmathews", sigT = 0.05, sigF = 0.05)
+#' hvar = "oneillmathews", sigT = 0.05, sigF = 0.05, unfold=NULL)
 #' @export
 
-dbc<-function (trat, bloco, resp, quali = TRUE, mcomp = "tukey", nl=FALSE,
-               hvar='han', sigT = 0.05, sigF = 0.05){
+dbc<-function (trat,
+               bloco,
+               resp,
+               quali = TRUE,
+               mcomp = "tukey",
+               nl=FALSE,
+               hvar='oneillmathews',
+               sigT = 0.05,
+               sigF = 0.05,
+               unfold=NULL){
 
 Trat <- factor(trat)
 Bloco <- factor(bloco)
@@ -105,7 +117,13 @@ if(pvalor.hvar<0.05){cat('ATENCAO: a 5% de significancia, as variancias nao pode
 else{cat('De acordo com o teste de',hvar,'a 5% de significancia, as variancias podem ser consideradas homogeneas.
 ------------------------------------------------------------------------\n')}
 
-if (tab[[1]][1, 5] < sigF) {
+# Creating unfold #########################################
+if(is.null(unfold)){
+  if(tab[[1]][1,5]<=sigF) {unfold<-c(unfold,1)}
+}
+
+#Para fator significativo, fazer...
+if(any(unfold==1)) {
 
 if (quali == TRUE) {
 

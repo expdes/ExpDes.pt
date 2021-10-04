@@ -29,12 +29,12 @@
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
-#' @param unfold Orienta os desdobramentos ap?s a an?lise de
-#' vari?ncia. Se NULL (\emph{default}), s?o feitas as an?lises
-#' recomendadas; se '0', ? feita apenas a an?lise de vari?ncia;
-#' se '1', os efeitos simples s?o estudados; se '2.1', '2.2' ou
-#' '2.3, as intera??es duplas 1, 2 ou 3 s?o estudadas; se '3',
-#' a intera??o tripla ? estudada.
+#' @param unfold Orienta os desdobramentos apos a analise de
+#' variancia. Se NULL (\emph{default}), sao feitas as analises
+#' recomendadas; se '0', e feita apenas a analise de variancia;
+#' se '1', os efeitos simples sao estudados; se '2.1', '2.2' ou
+#' '2.3, as interaoes duplas 1, 2 ou 3 sao estudadas; se '3',
+#' a interacao tripla e estudada.
 #' @details Os argumentos sigT e mcomp so serao utilizados
 #' quando os tratamentos forem qualitativos.
 #' @return Sao retornados os valores da analise de variancia
@@ -203,12 +203,12 @@ if(mcomp=='sk'){scottknott(resp,fatores[,i],an[9,1],an[9,2],sigT)}
 if(mcomp=='snk'){snk(resp,fatores[,i],an[9,1],an[9,2],sigT)}
 if(mcomp=="ccboot"){ccboot(resp,fatores[,i],an[9,1],an[9,2],sigT)}
 if(mcomp=="ccF"){ccF(resp,fatores[,i],an[9,1],an[9,2],sigT)}
-                   }
+}
 
 if(quali[i]==TRUE && pv.fs[i]>sigF) {
     cat(fac.names[i])
-    cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
-    cat('------------------------------------------------------------------------\n')
+cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
+cat('------------------------------------------------------------------------\n')
 mean.table<-tapply.stat(resp,fatores[,i],mean)
 colnames(mean.table)<-c('Niveis','Medias')
 print(mean.table)
@@ -229,8 +229,7 @@ mean.table<-tapply.stat(resp,fatores[,i],mean)
 colnames(mean.table)<-c('Niveis','Medias')
 print(mean.table)
 cat('------------------------------------------------------------------------')
-                            }
-
+}
 cat('\n')
 }
 }
@@ -293,13 +292,13 @@ if(mcomp=='sk'){scottknott(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9
 if(mcomp=='snk'){snk(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
 if(mcomp=="ccboot"){ccboot(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
 if(mcomp=="ccF"){ccF(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],an[9,1],an[9,2],sigT)}
-                      }
+}
 else{  #regressao
 cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'
 ------------------------------------------------------------------------')
 reg.poly(resp[Fator2==lf2[i]], fator1[Fator2==lf2[i]], an[9,1], an[9,2], des1.tab[i+2,1], des1.tab[i+2,2])
-        }
-                              }
+}
+}
 else{cat('\n\n',fac.names[1],' dentro do nivel ',lf2[i],' de ',fac.names[2],'\n')
 cat('\nDe acordo com o teste F, as medias desse fator sao estatisticamente iguais.\n')
 cat('------------------------------------------------------------------------\n')
@@ -307,7 +306,7 @@ mean.table<-tapply.stat(resp[Fator2==lf2[i]],fatores[,1][Fator2==lf2[i]],mean)
 colnames(mean.table)<-c('  Niveis','    Medias')
 print(mean.table)
 cat('------------------------------------------------------------------------\n')
-        }
+}
 }
 cat('\n\n')
 
@@ -424,8 +423,7 @@ if(quali[i]==FALSE && pvalor[i]<=sigF){
     print(mean.table)
     cat('------------------------------------------------------------------------')
   }
-
-  cat('\n')
+cat('\n')
 }
 }
 }
@@ -577,7 +575,7 @@ if(pvalor[4]>sigF && pvalor[6]>sigF) {
   cat('\nAnalisando os efeitos simples do fator ',fac.names[2],'
 ------------------------------------------------------------------------\n')
 
-  i<-2
+i<-2
 {
 #Para os fatores QUALITATIVOS, teste de Tukey
 if(quali[i]==TRUE && pvalor[i]<=sigF) {
@@ -795,7 +793,7 @@ print(mean.table)
 cat('------------------------------------------------------------------------')
 }
 
-  #Para os fatores QUANTITATIVOS, regressao
+#Para os fatores QUANTITATIVOS, regressao
 if(quali[i]==FALSE && pvalor[i]<=sigF){
   cat(fac.names[i])
   reg.poly(resp, fatores[,i], an[8,1],an[8,2], an[i,1], an[i,2])

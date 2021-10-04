@@ -26,6 +26,11 @@
 #' comparacao multipla de medias; o default e 5\%.
 #' @param sigF Significancia a ser adotada pelo teste F da
 #' ANAVA; o default e 5\%.
+#' @param unfold Orienta os desdobramentos apos a analise de
+#' variancia. Se NULL (\emph{default}), sao feitas as analises
+#' recomendadas; se '0', e feita apenas a analise de variancia;
+#' se '1', os efeitos simples sao estudados; se '2', a interacao
+#' dupla e estudada.
 #' @details Os argumentos sigT e mcomp so serao utilizados
 #' quando os tratamentos forem qualitativos.
 #' @return Sao retornados os valores da analise de variancia
@@ -53,14 +58,19 @@
 #' attach(ex)
 #' psub2.dbc(trat, dose, rep, resp, quali = c(TRUE, FALSE),
 #' mcomp = "tukey", fac.names = c("Tratamento", "Dose"),
-#' sigT = 0.05, sigF = 0.05)
+#' sigT = 0.05, sigF = 0.05, unfold=NULL)
 #' @export
 
-psub2.dbc<-function(fator1, fator2, bloco, resp,
-                    quali=c(TRUE,TRUE), mcomp='tukey',
-                    fac.names=c('F1','F2'), sigT=0.05,
-                    sigF=0.05) {
-
+psub2.dbc<-function(fator1,
+                    fator2,
+                    bloco,
+                    resp,
+                    quali=c(TRUE,TRUE),
+                    mcomp='tukey',
+                    fac.names=c('F1','F2'),
+                    sigT=0.05,
+                    sigF=0.05,
+                    unfold=NULL) {
 
 cat('------------------------------------------------------------------------\nLegenda:\n')
 cat('FATOR 1 (parcela): ',fac.names[1],'\n')
@@ -70,14 +80,14 @@ cont<-c(1,4)
 Fator1<-factor(fator1)
 Fator2<-factor(fator2)
 bloco<-factor(bloco)
-nv1<-length(summary(Fator1))   #Diz quantos niveis tem o fator 1.
-nv2<-length(summary(Fator2))   #Diz quantos niveis tem o fator 2.
+nv1<-length(summary(Fator1))
+nv2<-length(summary(Fator2))
 
 anava<-aov(resp ~ bloco + Fator1*Fator2 + Error(bloco/Fator1))
 tab1<-summary(anava)
 tab1$'Error: bloco'[[1]]<-cbind(tab1$'Error: bloco'[[1]], tab1$'Error: bloco'[[1]][1,3]/tab1$'Error: bloco:Fator1'[[1]][2,3])
 tab1$'Error: bloco'[[1]]<-cbind(tab1$'Error: bloco'[[1]], 1-pf(tab1$'Error: bloco'[[1]][1,4],
-  tab1$'Error: bloco'[[1]][1,1],tab1$'Error: bloco:Fator1'[[1]][2,1]))
+tab1$'Error: bloco'[[1]][1,1],tab1$'Error: bloco:Fator1'[[1]][2,1]))
 colnames(tab1$'Error: bloco'[[1]])<-c('GL', 'SQ', 'QM', 'Fc', 'Pr(>Fc)')
 colnames(tab1$'Error: bloco:Fator1'[[1]])<-c('GL', 'SQ', 'QM', 'Fc', 'Pr(>Fc)')
 colnames(tab1$'Error: Within'[[1]])<-c('GL', 'SQ', 'QM', 'Fc', 'Pr(>Fc)')
@@ -89,9 +99,9 @@ cv2=sqrt(tab[6,3])/mean(resp)*100
 tab<-round(tab,6)
 tab[7,3]<-NA
 
-output<-list('Quadro da analise de variancia\n------------------------------------------------------------------------\n' = tab)
-cat('------------------------------------------------------------------------\n')
-print(output,right=TRUE)
+cat('------------------------------------------------------------------------
+Quadro da analise de variancia\n------------------------------------------------------------------------\n')
+print(tab)
 cat('------------------------------------------------------------------------
 CV 1 =',cv1,'%\nCV 2 =', cv2,'%\n')
 
@@ -108,9 +118,14 @@ fatores<-data.frame('fator 1' = fator1,'fator 2' = fator2)
 #else{cat('De acordo com o teste de Shapiro-Wilk a 5% de significancia, os residuos podem ser considerados normais.
 #------------------------------------------------------------------------\n')}
 
+# Creating unfold #########################################
+if(is.null(unfold)){
+  if(tab[5,5]>sigF) {unfold<-c(unfold,1)}
+  if(as.numeric(tab[5,5])<=sigF) {unfold<-c(unfold,2)}
+}
 
 #Para interacao nao significativa, fazer...
-if(tab[5,5]>sigF) {
+if(any(unfold==1)) {
 cat('\nInteracao nao significativa: analisando os efeitos simples
 ------------------------------------------------------------------------\n')
 
@@ -177,7 +192,7 @@ cat('\n')
 
 }
 #Se a interacao for significativa, desdobrar a interacao
-if(as.numeric(tab[5,5])<=sigF) {
+if(any(unfold==2)) {
 cat("\n\n\nInteracao significativa: desdobrando a interacao
 ------------------------------------------------------------------------\n")
 
@@ -365,10 +380,8 @@ if(as.numeric(tab.f2f1[i,5])>sigF) {
     colnames(mean.table)<-c('Niveis','Medias')
     print(mean.table)
     cat('------------------------------------------------------------------------\n')
-                                                }
-
 }
-
+}
 }
 ## error a ##
 tabmedia<-model.tables(anava, "means")
