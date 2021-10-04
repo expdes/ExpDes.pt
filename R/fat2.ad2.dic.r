@@ -83,7 +83,8 @@ fat2.ad2.dic<-function(fator1,
  mcomp='tukey',
  fac.names=c('F1','F2'),
  sigT=0.05,
- sigF=0.05) {
+ sigF=0.05,
+ unfold=NULL) {
 
 
 cat('------------------------------------------------------------------------\nLegenda:\n')
